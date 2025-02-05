@@ -2,10 +2,12 @@ import random as rd
 import time
 import pygame
 
-prob = 12  # 탄창 슬롯 개수
+
+
+prob = int(input("탄창 슬롯 : "))  # 탄창 슬롯 개수
 fire = []  # 총알 위치
-o = 4  # 총알 개수
-man = 4
+o = int(input("총알 수 : "))  # 총알 개수
+man = int(input("참여자 수 : "))
 # 생존자 수
 er = [i + 1 for i in range(man)]  # 생존자 리스트
 
@@ -45,6 +47,10 @@ for i in range(prob):
         value = input('>> ')
         if value in ('1', '0'):
             value = int(value)
+            break
+        if value == "stop":
+            break
+    if value == "stop":
             break
 
     # 총알 여부 확인 (i+1을 사용하여 탄창과 비교)
