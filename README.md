@@ -1,30 +1,33 @@
+# Rusi Rullette
 
-# 🎯 Python Russian Roulette
+Unreal Engine C++ rebuild of the original Python roulette game.
 
-심플 러시안 룰렛.
+## Original Python Flow
 
-## ▶️ 실행
+- Enter chamber count, bullet count, and player count.
+- Bullet chamber positions are chosen randomly with no duplicates.
+- Each round picks one living player at random.
+- The player guesses `0` for empty or `1` for fire.
+- A correct guess survives. A wrong guess removes the player in multiplayer.
+- The game ends when every player is out, all bullets are spent, all chambers are used, or Stop is pressed.
 
-```bash
-python main.py
-```
+## Unreal Version
 
-## 🎮 게임방식
+Open `RusiRullette.uproject` in Unreal Engine 5.4 or newer.
 
-* 탄창 수, 총알 수, 참여자 수를 입력
-* 턴마다 `1` (발사 예측) 또는 `0` (빈 칸 예측) 입력, 예측이 틀릴시 사망함
-* 모두 사망하거나 `stop` 입력 시 게임 종료
+Implemented files:
 
-## 📌 특징
+- `Source/RusiRullette/RusiGameMode.*`: game state and roulette rules.
+- `Source/RusiRullette/RusiGameWidget.*`: runtime UI for settings, status, guesses, and results.
+- `Source/RusiRullette/RusiPlayerController.*`: mouse/UI input mode.
+- `Content/Audio/*.mp3`: copied from the Python version for import into Unreal.
 
-* 랜덤 총알 배치
-* 멀티 플레이 지원
-* 사운드 효과 (`pygame` 사용)
+## Audio
 
-## ⚠️ 요구 사항
+The C++ code looks for these imported Unreal sound assets:
 
-* Python 3
-* pygame (`pip install pygame`)
-* `revol.mp3`, `none.mp3`, `fire.mp3` 파일 필요
+- `/Game/Audio/revol`
+- `/Game/Audio/none`
+- `/Game/Audio/fire`
 
----
+If Unreal does not automatically import the MP3 files, import the three files from `Content/Audio` in the editor and keep the asset names `revol`, `none`, and `fire`.
