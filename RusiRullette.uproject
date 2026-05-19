@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.4",
+	"EngineAssociation": "5.7",
 	"Category": "Games",
-	"Description": "Russian roulette party game based on the original Python program.",
+	"Description": "Graphical roulette game based on the original Python program.",
 	"Modules": [
 		{
 			"Name": "RusiRullette",

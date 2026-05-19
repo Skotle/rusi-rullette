@@ -4,6 +4,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "RusiGameMode.generated.h"
 
+class ARusiRouletteBoard;
 class URusiGameWidget;
 class USoundBase;
 
@@ -40,6 +41,9 @@ private:
 	TObjectPtr<URusiGameWidget> GameWidget;
 
 	UPROPERTY()
+	TObjectPtr<ARusiRouletteBoard> RouletteBoard;
+
+	UPROPERTY()
 	TObjectPtr<USoundBase> RevolveSound;
 
 	UPROPERTY()
@@ -49,10 +53,11 @@ private:
 	TObjectPtr<USoundBase> FireSound;
 
 	TArray<int32> BulletChambers;
+	TArray<int32> FiredChambers;
 	TArray<int32> AlivePlayers;
 	int32 ChamberCount = 6;
 	int32 BulletCount = 1;
-	int32 PlayerCount = 1;
+	int32 PlayerCount = 4;
 	int32 CurrentRoundIndex = 0;
 	int32 CurrentPlayer = 1;
 	bool bIsPlaying = false;
@@ -63,5 +68,6 @@ private:
 	void PickCurrentPlayer();
 	void FinishGame(const FText& FinishText);
 	void RefreshWidget();
+	void RefreshBoard();
 	void PlaySound(USoundBase* Sound) const;
 };

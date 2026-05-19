@@ -1,0 +1,17 @@
+# Unreal generated files
+.vs/
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Packaged/distribution output
+Packaged/
+_large_files_hold/
+
+# Visual Studio / local files
+*.suo
+*.user
+*.VC.db
+*.opendb
+UpgradeLog.htm

@@ -4,6 +4,7 @@
 #include "Components/EditableTextBox.h"
 #include "Components/TextBlock.h"
 #include "RusiGameMode.h"
+#include "Styling/CoreStyle.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SUniformGridPanel.h"
@@ -23,13 +24,7 @@ TSharedRef<SWidget> URusiGameWidget::RebuildWidget()
 	BulletInput = NewObject<UEditableTextBox>(this);
 	BulletInput->SetText(FText::FromString(TEXT("1")));
 	PlayerInput = NewObject<UEditableTextBox>(this);
-	PlayerInput->SetText(FText::FromString(TEXT("2")));
-
-	TitleText = NewObject<UTextBlock>(this);
-	TitleText->SetText(NSLOCTEXT("Rusi", "Title", "Rusi Rullette"));
-	FSlateFontInfo TitleFont = TitleText->GetFont();
-	TitleFont.Size = 36;
-	TitleText->SetFont(TitleFont);
+	PlayerInput->SetText(FText::FromString(TEXT("4")));
 
 	StatusText = NewObject<UTextBlock>(this);
 	OddsText = NewObject<UTextBlock>(this);
@@ -42,22 +37,22 @@ TSharedRef<SWidget> URusiGameWidget::RebuildWidget()
 	StopButton = NewObject<UButton>(this);
 
 	UTextBlock* StartLabel = NewObject<UTextBlock>(this);
-	StartLabel->SetText(NSLOCTEXT("Rusi", "Start", "Start"));
+	StartLabel->SetText(NSLOCTEXT("Rusi", "Start", "START THE BAD IDEA"));
 	StartLabel->SetJustification(ETextJustify::Center);
 	StartButton->AddChild(StartLabel);
 
 	UTextBlock* StopLabel = NewObject<UTextBlock>(this);
-	StopLabel->SetText(NSLOCTEXT("Rusi", "Stop", "Stop"));
+	StopLabel->SetText(NSLOCTEXT("Rusi", "Stop", "STOP"));
 	StopLabel->SetJustification(ETextJustify::Center);
 	StopButton->AddChild(StopLabel);
 
 	UTextBlock* EmptyLabel = NewObject<UTextBlock>(this);
-	EmptyLabel->SetText(NSLOCTEXT("Rusi", "GuessEmpty", "0: Empty"));
+	EmptyLabel->SetText(NSLOCTEXT("Rusi", "GuessEmpty", "0: EMPTY, TRUST ME"));
 	EmptyLabel->SetJustification(ETextJustify::Center);
 	GuessEmptyButton->AddChild(EmptyLabel);
 
 	UTextBlock* FireLabel = NewObject<UTextBlock>(this);
-	FireLabel->SetText(NSLOCTEXT("Rusi", "GuessFire", "1: Fire"));
+	FireLabel->SetText(NSLOCTEXT("Rusi", "GuessFire", "1: FIRE, OBVIOUSLY"));
 	FireLabel->SetJustification(ETextJustify::Center);
 	GuessFireButton->AddChild(FireLabel);
 
@@ -66,18 +61,18 @@ TSharedRef<SWidget> URusiGameWidget::RebuildWidget()
 	GuessFireButton->OnClicked.AddDynamic(this, &URusiGameWidget::HandleGuessFireClicked);
 	StopButton->OnClicked.AddDynamic(this, &URusiGameWidget::HandleStopClicked);
 
-	TSharedRef<SVerticalBox> Root = SNew(SVerticalBox)
-		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 18)
+	TSharedRef<SVerticalBox> Panel = SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 10)
 		[
-			TitleText->TakeWidget()
+			SNew(STextBlock).Text(NSLOCTEXT("Rusi", "Title", "Rusi Rullette: 1000 Won Edition")).Font(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 28))
 		]
-		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 8)
+		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 10)
 		[
-			SNew(STextBlock).Text(NSLOCTEXT("Rusi", "Settings", "Game Settings"))
+			SNew(STextBlock).Text(NSLOCTEXT("Rusi", "SteamLine", "Main menu included. Value doubled."))
 		]
-		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 12)
+		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 10)
 		[
-			SNew(SUniformGridPanel).SlotPadding(FMargin(6))
+			SNew(SUniformGridPanel).SlotPadding(FMargin(5))
 			+ SUniformGridPanel::Slot(0, 0)[SNew(STextBlock).Text(NSLOCTEXT("Rusi", "Chambers", "Chambers"))]
 			+ SUniformGridPanel::Slot(1, 0)[ChamberInput->TakeWidget()]
 			+ SUniformGridPanel::Slot(0, 1)[SNew(STextBlock).Text(NSLOCTEXT("Rusi", "Bullets", "Bullets"))]
@@ -85,55 +80,29 @@ TSharedRef<SWidget> URusiGameWidget::RebuildWidget()
 			+ SUniformGridPanel::Slot(0, 2)[SNew(STextBlock).Text(NSLOCTEXT("Rusi", "Players", "Players"))]
 			+ SUniformGridPanel::Slot(1, 2)[PlayerInput->TakeWidget()]
 		]
-		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 16)
+		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 10)
 		[
 			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
-			[
-				StartButton->TakeWidget()
-			]
-			+ SHorizontalBox::Slot().AutoWidth()
-			[
-				StopButton->TakeWidget()
-			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)[StartButton->TakeWidget()]
+			+ SHorizontalBox::Slot().AutoWidth()[StopButton->TakeWidget()]
 		]
-		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 12)
-		[
-			StatusText->TakeWidget()
-		]
-		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 12)
-		[
-			OddsText->TakeWidget()
-		]
-		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 12)
-		[
-			AliveText->TakeWidget()
-		]
-		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 16)
+		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 10)[StatusText->TakeWidget()]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 10)[OddsText->TakeWidget()]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 10)[AliveText->TakeWidget()]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 10)
 		[
 			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
-			[
-				GuessEmptyButton->TakeWidget()
-			]
-			+ SHorizontalBox::Slot().AutoWidth()
-			[
-				GuessFireButton->TakeWidget()
-			]
+			+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)[GuessEmptyButton->TakeWidget()]
+			+ SHorizontalBox::Slot().AutoWidth()[GuessFireButton->TakeWidget()]
 		]
-		+ SVerticalBox::Slot().AutoHeight()
-		[
-			ResultText->TakeWidget()
-		];
+		+ SVerticalBox::Slot().AutoHeight()[ResultText->TakeWidget()];
 
 	return SNew(SBorder)
-		.Padding(36)
+		.Padding(24)
+		.HAlign(HAlign_Left)
+		.VAlign(VAlign_Top)
 		[
-			SNew(SBox)
-			.WidthOverride(520)
-			[
-				Root
-			]
+			SNew(SBox).WidthOverride(460)[Panel]
 		];
 }
 
@@ -151,7 +120,7 @@ void URusiGameWidget::Refresh()
 	const int32 RemainingChambers = FMath::Max(1, GameMode->GetChamberCount() - GameMode->GetCurrentRoundIndex());
 	const float FireOdds = static_cast<float>(GameMode->GetBulletChambers().Num()) / static_cast<float>(RemainingChambers) * 100.0f;
 	OddsText->SetText(FText::Format(
-		NSLOCTEXT("Rusi", "Odds", "Bullets left: {0} / Chambers left: {1} / Fire odds: {2}%"),
+		NSLOCTEXT("Rusi", "Odds", "Remaining danger: {0} / Remaining excuses: {1} / Bad idea odds: {2}%"),
 		FText::AsNumber(GameMode->GetBulletChambers().Num()),
 		FText::AsNumber(RemainingChambers),
 		FText::AsNumber(FireOdds)));
@@ -203,12 +172,7 @@ int32 URusiGameWidget::ParseInt(UEditableTextBox* TextBox, int32 Fallback) const
 	}
 
 	const FString Text = TextBox->GetText().ToString();
-	if (Text.IsNumeric())
-	{
-		return FCString::Atoi(*Text);
-	}
-
-	return Fallback;
+	return Text.IsNumeric() ? FCString::Atoi(*Text) : Fallback;
 }
 
 FText URusiGameWidget::JoinAlivePlayers() const

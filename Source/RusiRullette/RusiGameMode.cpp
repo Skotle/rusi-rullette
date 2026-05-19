@@ -3,34 +3,31 @@
 #include "Kismet/GameplayStatics.h"
 #include "RusiGameWidget.h"
 #include "RusiPlayerController.h"
+#include "RusiRouletteBoard.h"
 #include "Sound/SoundBase.h"
-#include "UObject/ConstructorHelpers.h"
 
 ARusiGameMode::ARusiGameMode()
 {
 	PlayerControllerClass = ARusiPlayerController::StaticClass();
 
-	static ConstructorHelpers::FObjectFinder<USoundBase> RevolveFinder(TEXT("/Game/Audio/revol.revol"));
-	static ConstructorHelpers::FObjectFinder<USoundBase> EmptyFinder(TEXT("/Game/Audio/none.none"));
-	static ConstructorHelpers::FObjectFinder<USoundBase> FireFinder(TEXT("/Game/Audio/fire.fire"));
-
-	if (RevolveFinder.Succeeded())
-	{
-		RevolveSound = RevolveFinder.Object;
-	}
-	if (EmptyFinder.Succeeded())
-	{
-		EmptySound = EmptyFinder.Object;
-	}
-	if (FireFinder.Succeeded())
-	{
-		FireSound = FireFinder.Object;
-	}
+	RevolveSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/revol.revol"));
+	EmptySound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/none.none"));
+	FireSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/fire.fire"));
 }
 
 void ARusiGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	RouletteBoard = GetWorld()->SpawnActor<ARusiRouletteBoard>(ARusiRouletteBoard::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+	if (RouletteBoard)
+	{
+		RouletteBoard->Configure(ChamberCount, PlayerCount);
+		if (APlayerController* Controller = UGameplayStatics::GetPlayerController(this, 0))
+		{
+			Controller->SetViewTargetWithBlend(RouletteBoard);
+		}
+	}
 
 	GameWidget = CreateWidget<URusiGameWidget>(GetWorld(), URusiGameWidget::StaticClass());
 	if (GameWidget)
@@ -40,6 +37,7 @@ void ARusiGameMode::BeginPlay()
 	}
 
 	ResetState();
+	RefreshBoard();
 	RefreshWidget();
 }
 
@@ -50,6 +48,7 @@ void ARusiGameMode::StartGame(int32 InChamberCount, int32 InBulletCount, int32 I
 	PlayerCount = FMath::Clamp(InPlayerCount, 1, 32);
 
 	BulletChambers.Reset();
+	FiredChambers.Reset();
 	AlivePlayers.Reset();
 	CurrentRoundIndex = 0;
 	bIsPlaying = true;
@@ -61,16 +60,19 @@ void ARusiGameMode::StartGame(int32 InChamberCount, int32 InBulletCount, int32 I
 
 	while (BulletChambers.Num() < BulletCount)
 	{
-		const int32 Chamber = FMath::RandRange(1, ChamberCount);
-		BulletChambers.AddUnique(Chamber);
+		BulletChambers.AddUnique(FMath::RandRange(1, ChamberCount));
+	}
+
+	if (RouletteBoard)
+	{
+		RouletteBoard->Configure(ChamberCount, PlayerCount);
 	}
 
 	PickCurrentPlayer();
-	StatusText = FText::Format(
-		NSLOCTEXT("Rusi", "Started", "Cylinder loaded. Player {0}, make your guess."),
-		FText::AsNumber(CurrentPlayer));
+	StatusText = FText::Format(NSLOCTEXT("Rusi", "Started", "The bargain cylinder screams. Player {0}, guess like you paid 1000 won."), FText::AsNumber(CurrentPlayer));
 	ResultText = FText::GetEmpty();
 	PlaySound(RevolveSound);
+	RefreshBoard();
 	RefreshWidget();
 }
 
@@ -88,6 +90,7 @@ void ARusiGameMode::MakeGuess(bool bGuessFire)
 	if (bActualFire)
 	{
 		BulletChambers.Remove(Chamber);
+		FiredChambers.AddUnique(Chamber);
 		PlaySound(FireSound);
 	}
 	else
@@ -97,15 +100,11 @@ void ARusiGameMode::MakeGuess(bool bGuessFire)
 
 	if (bCorrect)
 	{
-		ResultText = FText::Format(
-			NSLOCTEXT("Rusi", "Correct", "Player {0} survives. Correct guess."),
-			FText::AsNumber(CurrentPlayer));
+		ResultText = FText::Format(NSLOCTEXT("Rusi", "Correct", "Player {0} survives. Somehow, that was skill."), FText::AsNumber(CurrentPlayer));
 	}
 	else
 	{
-		ResultText = FText::Format(
-			NSLOCTEXT("Rusi", "Wrong", "Player {0} is out. Wrong guess."),
-			FText::AsNumber(CurrentPlayer));
+		ResultText = FText::Format(NSLOCTEXT("Rusi", "Wrong", "Player {0} gets folded into discount history."), FText::AsNumber(CurrentPlayer));
 		if (PlayerCount > 1)
 		{
 			AlivePlayers.Remove(CurrentPlayer);
@@ -122,54 +121,48 @@ void ARusiGameMode::MakeGuess(bool bGuessFire)
 
 	if (AlivePlayers.IsEmpty())
 	{
-		FinishGame(NSLOCTEXT("Rusi", "AllOut", "Everyone is out."));
+		FinishGame(NSLOCTEXT("Rusi", "AllOut", "Everyone is out. Refund window remains open."));
 		return;
 	}
 
 	if (BulletChambers.IsEmpty())
 	{
-		FinishGame(NSLOCTEXT("Rusi", "NoBullets", "All bullets have been spent."));
+		FinishGame(NSLOCTEXT("Rusi", "NoBullets", "All bullets spent. The budget has vanished."));
 		return;
 	}
 
 	if (CurrentRoundIndex >= ChamberCount)
 	{
-		FinishGame(NSLOCTEXT("Rusi", "NoChambers", "No chambers remain."));
+		FinishGame(NSLOCTEXT("Rusi", "NoChambers", "No chambers remain. This is legally an ending."));
 		return;
 	}
 
 	PickCurrentPlayer();
-	StatusText = FText::Format(
-		NSLOCTEXT("Rusi", "NextTurn", "Player {0}, make your guess."),
-		FText::AsNumber(CurrentPlayer));
+	StatusText = FText::Format(NSLOCTEXT("Rusi", "NextTurn", "Player {0}, the cube crowd demands a guess."), FText::AsNumber(CurrentPlayer));
+	RefreshBoard();
 	RefreshWidget();
 }
 
 void ARusiGameMode::StopGame()
 {
-	FinishGame(NSLOCTEXT("Rusi", "Stopped", "Game stopped."));
+	FinishGame(NSLOCTEXT("Rusi", "Stopped", "Game stopped. Production value preserved."));
 }
 
 void ARusiGameMode::ResetState()
 {
 	BulletChambers.Reset();
+	FiredChambers.Reset();
 	AlivePlayers.Reset();
 	CurrentRoundIndex = 0;
 	CurrentPlayer = 1;
 	bIsPlaying = false;
-	StatusText = NSLOCTEXT("Rusi", "Ready", "Choose settings, then start.");
+	StatusText = NSLOCTEXT("Rusi", "Ready", "Choose settings. Then unleash the 1000 won spectacle.");
 	ResultText = FText::GetEmpty();
 }
 
 void ARusiGameMode::PickCurrentPlayer()
 {
-	if (AlivePlayers.IsEmpty())
-	{
-		CurrentPlayer = 0;
-		return;
-	}
-
-	CurrentPlayer = AlivePlayers[FMath::RandRange(0, AlivePlayers.Num() - 1)];
+	CurrentPlayer = AlivePlayers.IsEmpty() ? 0 : AlivePlayers[FMath::RandRange(0, AlivePlayers.Num() - 1)];
 }
 
 void ARusiGameMode::FinishGame(const FText& FinishText)
@@ -178,10 +171,9 @@ void ARusiGameMode::FinishGame(const FText& FinishText)
 	StatusText = FinishText;
 	if (AlivePlayers.Num() > 0 && PlayerCount > 1)
 	{
-		ResultText = FText::Format(
-			NSLOCTEXT("Rusi", "Survivors", "Survivors: {0}"),
-			FText::AsNumber(AlivePlayers.Num()));
+		ResultText = FText::Format(NSLOCTEXT("Rusi", "Survivors", "Survivors: {0}"), FText::AsNumber(AlivePlayers.Num()));
 	}
+	RefreshBoard();
 	RefreshWidget();
 }
 
@@ -190,6 +182,14 @@ void ARusiGameMode::RefreshWidget()
 	if (GameWidget)
 	{
 		GameWidget->Refresh();
+	}
+}
+
+void ARusiGameMode::RefreshBoard()
+{
+	if (RouletteBoard)
+	{
+		RouletteBoard->RefreshBoard(CurrentRoundIndex, FiredChambers, AlivePlayers, CurrentPlayer, bIsPlaying);
 	}
 }
 

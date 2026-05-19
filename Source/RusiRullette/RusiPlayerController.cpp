@@ -5,7 +5,7 @@ void ARusiPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	bShowMouseCursor = true;
-	FInputModeUIOnly InputMode;
+	FInputModeGameAndUI InputMode;
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	SetInputMode(InputMode);
 }

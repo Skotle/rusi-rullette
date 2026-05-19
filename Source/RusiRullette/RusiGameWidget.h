@@ -35,9 +35,6 @@ private:
 	TObjectPtr<UEditableTextBox> PlayerInput;
 
 	UPROPERTY()
-	TObjectPtr<UTextBlock> TitleText;
-
-	UPROPERTY()
 	TObjectPtr<UTextBlock> StatusText;
 
 	UPROPERTY()
